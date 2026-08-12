@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SchoolDay · 欧阳的主页</title>
+  <meta name="description" content="个人项目与工具集合平台 — WebGIS 开发、AI 工具、数据分析" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+  <style>
+    :root, html[data-theme="dark"] {
+      --bg: #05060f;
+      --bg-2: #0a0e22;
+      --panel: rgba(255,255,255,0.04);
+      --border: rgba(140,170,255,0.14);
+      --text: #eaf0ff;
+      --muted: #8b98c4;
+      --brand: #6c8cff;
+      --brand-2: #3ff0d0;
+      --brand-3: #b06bff;
+      --glow: rgba(108,140,255,.2);
+      --card-bg: rgba(10,14,30,0.7);
+      --card-hover: rgba(15,20,40,0.85);
+      color-scheme: dark;
+    }
+    html[data-theme="light"] {
+      --bg: #f5f7fc;
+      --bg-2: #ebeef8;
+      --panel: rgba(255,255,255,0.6);
+      --border: rgba(108,140,255,0.12);
+      --text: #1a1f36;
+      --muted: #6b7aa1;
+      --brand: #3d5cf5;
+      --brand-2: #08a58c;
+      --brand-3: #7a45f0;
+      --glow: rgba(61,92,245,.12);
+      --card-bg: rgba(255,255,255,0.65);
+      --card-hover: rgba(255,255,255,0.9);
+      --header-bg: rgba(255,255,255,0.75);
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.5s;
+    }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", -apple-system, "Segoe UI", "PingFang SC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    html {
+      overflow: hidden;
+    }
+    main {
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    main::-webkit-scrollbar {
+      display: none;
+    }
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 20%, var(--bg-2) 0%, var(--bg) 70%);
+    }
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(108,140,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(108,140,255,.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.6;
+    }
+    .noise {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' /%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      opacity: 0.3;
+    }
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 4%;
+      backdrop-filter: blur(16px);
+      background: rgba(5,6,15,.6);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s ease;
+    }
+    html[data-theme="light"] header {
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+    }
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand-mark {
+      width: 8px;
+      height: 8px;
+      background: var(--brand);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--brand);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .theme-toggle {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover {
+      background: var(--card-hover);
+      transform: scale(1.05);
+    }
+    .icon-sun, .icon-moon {
+      width: 18px;
+      height: 18px;
+    }
+    html[data-theme="dark"] .icon-sun { display: block; }
+    html[data-theme="dark"] .icon-moon { display: none; }
+    html[data-theme="light"] .icon-sun { display: none; }
+    html[data-theme="light"] .icon-moon { display: block; }
+    main {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 4%;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .lead {
+      font-size: 1.125rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+    }
+    .card {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+      cursor: pointer;
+    }
+    a.card {
+      display: block;
+    }
+    a.card:hover {
+      color: var(--text);
+      text-decoration: none;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--brand), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .card:hover {
+      background: var(--card-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(108,140,255,0.15);
+    }
+    .card:hover::before {
+      opacity: 1;
+    }
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      font-size: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .card-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .chip {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+    }
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 1.5rem 4%;
+      color: var(--muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border);
+    }
+    @media (max-width: 768px) {
+      header { padding: 1rem 5%; }
+      main { padding: 2rem 5%; }
+      .grid { grid-template-columns: 1fr; gap: 1rem; }
+      h1 { font-size: 2.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg">
+    <div class="grid-lines"></div>
+    <div class="noise"></div>
+  </div>
+
+  <header>
+    <a class="brand" href="/">
+      <span class="brand-mark"></span>
+      <span>SchoolDay</span>
+    </a>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换主题">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>欧阳的主页</h1>
+      <p class="lead">WebGIS 开发 · AI 工具 · 数据分析<br />一站式个人项目与工具集合</p>
+    </div>
+
+    <div class="grid">
+      <div class="card" data-href="./portfolio/">
+        <div class="card-icon">📄</div>
+        <h2>个人作品集</h2>
+        <p>6 年 WebGIS 开发经历，专注 Cesium / Leaflet 二三维地图与工程落地</p>
+        <div class="card-meta">
+          <span class="chip">WebGIS</span>
+          <span class="chip">Vue3</span>
+          <span class="chip">Cesium</span>
+        </div>
+      </div>
+
+      <div class="card" data-href="./stock-analysis/">
+        <div class="card-icon">📊</div>
+        <h2>股票分析工具</h2>
+        <p>实时数据分析与可视化，助力投资决策</p>
+        <div class="card-meta">
+          <span class="chip">数据分析</span>
+          <span class="chip">可视化</span>
+        </div>
+      </div>
+
+      <div class="card" data-href="./claude-limiter/">
+        <div class="card-icon">🔧</div>
+        <h2>Claude RPM 限制器</h2>
+        <p>Claude API 请求速率管理工具，精确控制 RPM/TPM 配额</p>
+        <div class="card-meta">
+          <span class="chip">AI工具</span>
+          <span class="chip">速率限制</span>
+        </div>
+      </div>
+
+      <div class="card" data-href="./codex-limiter/">
+        <div class="card-icon">🔧</div>
+        <h2>Codex RPM 限制器</h2>
+        <p>OpenAI Codex API 速率管理与请求优化工具</p>
+        <div class="card-meta">
+          <span class="chip">AI工具</span>
+          <span class="chip">代码生成</span>
+        </div>
+      </div>
+
+      <div class="card" data-href="./hongp/">
+        <div class="card-icon">🚀</div>
+        <h2>HongP 项目</h2>
+        <p>敬请期待更多功能与工具</p>
+        <div class="card-meta">
+          <span class="chip">开发中</span>
+        </div>
+      </div>
+
+      <div class="card" data-href="./kitchen/">
+        <div class="card-icon">🍳</div>
+        <h2>Kitchen 项目</h2>
+        <p>实验性工具与创意想法的试验田</p>
+        <div class="card-meta">
+          <span class="chip">实验性</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> 欧阳 · SchoolDay · Built with passion</p>
+  </footer>
+
+  <script>
+    const year = document.getElementById('year');
+    if (year) year.textContent = String(new Date().getFullYear());
+
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const THEME_KEY = 'schoolday-theme';
+
+    function systemTheme() {
+      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+
+    function applyTheme(theme) {
+      const next = theme === 'light' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
+    }
+
+    function applyThemeWithTransition(theme) {
+      const next = theme === 'light' ? 'light' : 'dark';
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (reduced || typeof document.startViewTransition !== 'function') {
+        applyTheme(next);
+        return;
+      }
+
+      document.startViewTransition(() => {
+        applyTheme(next);
+      });
+    }
+
+    function initTheme() {
+      let saved = null;
+      try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
+      applyTheme(saved === 'light' || saved === 'dark' ? saved : systemTheme());
+    }
+
+    initTheme();
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        applyThemeWithTransition(current === 'dark' ? 'light' : 'dark');
+      });
+    }
+
+    // Card click handling
+    document.querySelectorAll('.card[data-href]').forEach(card => {
+      card.addEventListener('click', (e) => {
+        e.preventDefault();
+        const url = card.getAttribute('data-href');
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
