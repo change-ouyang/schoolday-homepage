@@ -5,10 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SchoolDay · 欧阳的主页</title>
   <meta name="description" content="个人项目与工具集合平台 — WebGIS 开发、AI 工具、数据分析" />
+  <meta name="robots" content="index,follow" />
   <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#05060f" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)" />
+  <link rel="canonical" href="https://schoolday.cc.cd/" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SchoolDay" />
+  <meta property="og:title" content="SchoolDay · 欧阳的主页" />
+  <meta property="og:description" content="个人项目与工具集合平台 — WebGIS 开发、AI 工具、数据分析" />
+  <meta property="og:url" content="https://schoolday.cc.cd/" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="SchoolDay · 欧阳的主页" />
+  <meta name="twitter:description" content="个人项目与工具集合平台 — WebGIS 开发、AI 工具、数据分析" />
+  <script>
+    // 在样式表生效前定好主题：既避免浅色偏好用户先看到深色首帧，
+    // 也避免 body 常驻的 background/color 过渡在加载时演一次深→浅渐变。
+    (function () {
+      var theme = 'dark';
+      try {
+        var saved = localStorage.getItem('schoolday-theme');
+        theme = (saved === 'light' || saved === 'dark')
+          ? saved
+          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      } catch (_) {}
+      document.documentElement.setAttribute('data-theme', theme);
+      document.documentElement.classList.add('theme-init');
+      // 首帧画完就撤掉"禁止过渡"，之后用户手动切换才有过渡动画
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          document.documentElement.classList.remove('theme-init');
+        });
+      });
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+  <!-- 字体 CSS 非阻塞加载：网络慢或字体域名不可达时，不让它拖住首屏渲染 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" /></noscript>
   <style>
     :root, html[data-theme="dark"] {
       --bg: #05060f;
@@ -31,7 +68,7 @@
       --panel: rgba(255,255,255,0.6);
       --border: rgba(108,140,255,0.12);
       --text: #1a1f36;
-      --muted: #6b7aa1;
+      --muted: #5f6d94;   /* 4.78:1 on --bg（卡片上 5.00:1）；原 #6b7aa1 只有 3.98:1 */
       --brand: #3d5cf5;
       --brand-2: #08a58c;
       --brand-3: #7a45f0;
@@ -42,6 +79,14 @@
       color-scheme: light;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* 首帧禁用过渡：主题已在 head 里定好，不该再演一次深→浅渐变 */
+    html.theme-init body { transition: none; }
+    /* 键盘焦点环：两套主题都 >=4.8:1 */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--brand);
+      outline-offset: 3px;
+    }
     html {
       scroll-behavior: smooth;
       overflow-x: hidden;
@@ -127,8 +172,8 @@
       background: var(--panel);
       border: 1px solid var(--border);
       color: var(--text);
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 8px;
       cursor: pointer;
       display: flex;
@@ -184,7 +229,10 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      /* auto-fit + 上限 420px：卡片数量变化时列数自适应。
+         原来桌面端写死 3 列 / 6 列，只剩一张卡时会排成 1/6 宽并贴着左边。 */
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 420px));
+      justify-content: center;
       gap: 1.5rem;
       width: 100%;
     }
@@ -201,12 +249,31 @@
       overflow: hidden;
       cursor: pointer;
     }
-    a.card {
-      display: block;
+    /* 卡片整体可点，但用 button 元素而不是 a[href]：按钮没有 href，
+       浏览器就不会在左下角弹出目标地址提示条。
+       代价（明确取舍）：失去中键 / Ctrl+点击新标签、右键"复制链接地址"。
+       ::after 撑满整张卡 = stretched button：标题本身仍是可聚焦控件，
+       h2 标题结构保留，读屏念到的名字也只有标题，不会把整段描述都念出来。 */
+    .card-action {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
     }
-    a.card:hover {
-      color: var(--text);
-      text-decoration: none;
+    .card-action::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+    }
+    .card-action:focus-visible { outline: none; }
+    /* 卡片自身 overflow:hidden，焦点环必须画在内侧才看得见 */
+    .card-action:focus-visible::after {
+      outline: 2px solid var(--brand);
+      outline-offset: -3px;
     }
     .card::before {
       content: '';
@@ -229,6 +296,16 @@
     .card:hover::before {
       opacity: 1;
     }
+    /* 待开发卡片：只压暗装饰性图标，正文保持可读
+       （原来整卡 opacity:.6 把文字压到浅色 2.16:1 / 深色 3.15:1，且仍会 hover 抬起） */
+    .card.is-todo { cursor: default; }
+    .card.is-todo .card-icon { filter: grayscale(.65); opacity: .5; }
+    .card.is-todo:hover {
+      background: var(--card-bg);
+      transform: none;
+      box-shadow: none;
+    }
+    .card.is-todo:hover::before { opacity: 0; }
     .card-icon {
       width: 48px;
       height: 48px;
@@ -275,16 +352,15 @@
       border-top: 1px solid var(--border);
     }
     @media (min-width: 1024px) {
-      html,
-      body {
-        height: 100%;
-        overflow: hidden;
-      }
+      /* 单屏铺满，但装不下时允许滚动：原来 height:100% + overflow:hidden
+         会在矮窗口下把最下面一排卡片直接裁掉，且滚不到 */
+      html { height: 100%; }
+      body { height: auto; min-height: 100%; overflow: visible; }
       main {
         min-height: 0;
         max-width: 1800px;
         padding: clamp(1rem, 2vh, 2rem) 4%;
-        overflow: hidden;
+        overflow: visible;
         justify-content: center;
       }
       .hero {
@@ -294,7 +370,6 @@
         margin-bottom: 0;
       }
       .grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
         row-gap: clamp(0.75rem, 2vh, 1.5rem);
       }
       .card {
@@ -311,8 +386,10 @@
       }
     }
     @media (min-width: 1600px) {
+      /* 宽屏仍可排到 6 列（下限 260px，1800px 内容宽度装得下 6 × ~280px），
+         但卡片少时不会硬留空列 */
       .grid {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 420px));
       }
     }
     @media (min-width: 1024px) and (max-height: 800px) {
@@ -397,9 +474,9 @@
     </div>
 
     <div class="grid">
-      <div class="card" data-href="https://schoolday-site.pages.dev">
+      <div class="card">
         <div class="card-icon">📄</div>
-        <h2>个人作品集</h2>
+        <h2><button class="card-action" type="button" data-href="https://schoolday-site.pages.dev" aria-label="个人作品集（在新标签页打开）">个人作品集</button></h2>
         <p>6 年 WebGIS 开发经历，专注 Cesium / Leaflet 二三维地图与工程落地</p>
         <div class="card-meta">
           <span class="chip">WebGIS</span>
@@ -408,48 +485,58 @@
         </div>
       </div>
 
-      <div class="card" style="opacity: 0.6; cursor: not-allowed;">
+      <div class="card">
+        <div class="card-icon">🛡️</div>
+        <h2><button class="card-action" type="button" data-href="https://3x-ui.schoolday.cc.cd/page/panel" aria-label="3x-ui 节点面板（在新标签页打开）">3x-ui 节点面板</button></h2>
+        <p>节点管理面板：多协议入站、流量统计与多用户配额</p>
+        <div class="card-meta">
+          <span class="chip">Xray</span>
+          <span class="chip">多协议</span>
+          <span class="chip">需登录</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📡</div>
+        <h2><button class="card-action" type="button" data-href="https://komari.schoolday.cc.cd/" aria-label="Komari 服务器监控（在新标签页打开）">Komari 服务器监控</button></h2>
+        <p>多机在线率、负载、内存与流量的实时看板</p>
+        <div class="card-meta">
+          <span class="chip">监控</span>
+          <span class="chip">多机</span>
+          <span class="chip">需登录</span>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-icon">📊</div>
-        <h2>股票分析工具</h2>
-        <p>实时数据分析与可视化，助力投资决策</p>
+        <h2><button class="card-action" type="button" data-href="https://cpamp.schoolday.cc.cd" aria-label="CPAMP 管理面板（在新标签页打开）">CPAMP 管理面板</button></h2>
+        <p>自托管的 CLIProxyAPI 管理面板：请求记录、用量与成本分析、配额与账号健康度</p>
         <div class="card-meta">
-          <span class="chip">待开发</span>
+          <span class="chip">CLIProxyAPI</span>
+          <span class="chip">成本分析</span>
+          <span class="chip">需登录</span>
         </div>
       </div>
 
-      <div class="card" style="opacity: 0.6; cursor: not-allowed;">
-        <div class="card-icon">🔧</div>
-        <h2>Claude RPM 限制器</h2>
-        <p>Claude API 请求速率管理工具，精确控制 RPM/TPM 配额</p>
+      <div class="card">
+        <div class="card-icon">🔌</div>
+        <h2><button class="card-action" type="button" data-href="https://newapi.schoolday.cc.cd/" aria-label="New API 网关（在新标签页打开）">New API 网关</button></h2>
+        <p>大模型 API 统一网关：多上游渠道、密钥与额度管理、用量统计</p>
         <div class="card-meta">
-          <span class="chip">待开发</span>
+          <span class="chip">LLM</span>
+          <span class="chip">网关</span>
+          <span class="chip">需登录</span>
         </div>
       </div>
 
-      <div class="card" style="opacity: 0.6; cursor: not-allowed;">
-        <div class="card-icon">🔧</div>
-        <h2>Codex RPM 限制器</h2>
-        <p>OpenAI Codex API 速率管理与请求优化工具</p>
+      <div class="card">
+        <div class="card-icon">🚨</div>
+        <h2><button class="card-action" type="button" data-href="https://crowdsec.schoolday.cc.cd" aria-label="CrowdSec 入侵防护（在新标签页打开）">CrowdSec 入侵防护</button></h2>
+        <p>基于社区威胁情报的入侵检测与 IP 封禁：告警、决策与拦截记录</p>
         <div class="card-meta">
-          <span class="chip">待开发</span>
-        </div>
-      </div>
-
-      <div class="card" style="opacity: 0.6; cursor: not-allowed;">
-        <div class="card-icon">🚀</div>
-        <h2>HongP 项目</h2>
-        <p>敬请期待更多功能与工具</p>
-        <div class="card-meta">
-          <span class="chip">待开发</span>
-        </div>
-      </div>
-
-      <div class="card" style="opacity: 0.6; cursor: not-allowed;">
-        <div class="card-icon">🍳</div>
-        <h2>Kitchen 项目</h2>
-        <p>实验性工具与创意想法的试验田</p>
-        <div class="card-meta">
-          <span class="chip">待开发</span>
+          <span class="chip">安全</span>
+          <span class="chip">IPS</span>
+          <span class="chip">需登录</span>
         </div>
       </div>
     </div>
@@ -463,18 +550,25 @@
     const year = document.getElementById('year');
     if (year) year.textContent = String(new Date().getFullYear());
 
+    // 卡片跳转：button + JS，而不是 a[href] —— 这样悬停时浏览器不弹目标地址提示条。
+    // 取舍：中键/Ctrl+点击新标签、右键"复制链接地址"不可用。
+    document.querySelectorAll('.card-action[data-href]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.href;
+        if (url) window.open(url, '_blank', 'noopener,noreferrer');
+      });
+    });
+
     const root = document.documentElement;
     const themeToggle = document.getElementById('theme-toggle');
     const THEME_KEY = 'schoolday-theme';
 
-    function systemTheme() {
-      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    }
-
-    function applyTheme(theme) {
+    // 主题的"首帧定调"已由 head 里的内联脚本完成，这里只负责手动切换与跟随系统。
+    // persist=false 用于跟随系统：不写 localStorage，否则首次访问就把系统偏好锁死了。
+    function applyTheme(theme, persist) {
       const next = theme === 'light' ? 'light' : 'dark';
       root.setAttribute('data-theme', next);
-      try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
+      if (persist) { try { localStorage.setItem(THEME_KEY, next); } catch (_) {} }
     }
 
     function applyThemeWithTransition(theme) {
@@ -482,22 +576,15 @@
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
       if (reduced || typeof document.startViewTransition !== 'function') {
-        applyTheme(next);
+        applyTheme(next, true);
         return;
       }
 
       document.startViewTransition(() => {
-        applyTheme(next);
+        applyTheme(next, true);
       });
     }
 
-    function initTheme() {
-      let saved = null;
-      try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
-      applyTheme(saved === 'light' || saved === 'dark' ? saved : systemTheme());
-    }
-
-    initTheme();
     if (themeToggle) {
       themeToggle.addEventListener('click', () => {
         const current = root.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
@@ -505,16 +592,15 @@
       });
     }
 
-    // Card click handling
-    document.querySelectorAll('.card[data-href]').forEach(card => {
-      card.addEventListener('click', (e) => {
-        e.preventDefault();
-        const url = card.getAttribute('data-href');
-        if (url) {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        }
-      });
-    });
+    // 用户没手动选过时，跟随系统主题的实时变化；选过就以用户为准
+    const mql = window.matchMedia('(prefers-color-scheme: light)');
+    const onSystemTheme = (e) => {
+      let saved = null;
+      try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
+      if (!saved) applyTheme(e.matches ? 'light' : 'dark', false);
+    };
+    if (mql.addEventListener) mql.addEventListener('change', onSystemTheme);
+    else if (mql.addListener) mql.addListener(onSystemTheme);
   </script>
 </body>
 </html>
