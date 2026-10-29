@@ -10,8 +10,8 @@
 各项目独立部署，通过主页导航访问：
 
 - **个人作品集** - 6年 WebGIS 开发经历展示
-  - 访问：https://schoolday-site.pages.dev
-  - 仓库：https://github.com/change-ouyang/schoolday-site
+  - 访问：https://schoolday.cc.cd/site/index.html
+  - 已合并到当前仓库 `site/`，不再单独部署
 
 - **3x-ui 节点面板** - 节点管理面板：多协议入站、流量统计与多用户配额
   - 访问：https://3x-ui.schoolday.cc.cd/page/panel
@@ -32,6 +32,14 @@
 - **CrowdSec 入侵防护** - 基于社区威胁情报的入侵检测与 IP 封禁：告警、决策与拦截记录
   - 访问：https://crowdsec.schoolday.cc.cd
   - 需登录
+
+- **Magpie 在线代理** - Oracle 上的在线 Magpie：多模型聚合、Token 控制与用量管理
+  - 访问：https://magpie.schoolday.cc.cd
+  - 邮箱 OTP / Cloudflare 账号登录
+
+- **股票分析系统** - 全市场扫描、竞价监控、历史回测与实时自选信号分析
+  - 访问：https://stock.schoolday.cc.cd
+  - 邮箱 OTP / Cloudflare 账号登录
 
 ## 🔒 安全与访问控制
 

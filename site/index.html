@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>欧阳 | WebGIS 开发工程师</title>
+  <meta name="description" content="欧阳的个人主页 — WebGIS / 前端开发，专注二三维地图与工程落地。" />
+  <meta name="robots" content="index,follow" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="theme-color" content="#05060f" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#eef2fb" media="(prefers-color-scheme: light)" />
+  <link rel="canonical" href="https://schoolday.cc.cd/site/" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="SchoolDay" />
+  <meta property="og:title" content="欧阳 | WebGIS 开发工程师" />
+  <meta property="og:description" content="欧阳的个人主页 — WebGIS / 前端开发，专注二三维地图与工程落地。" />
+  <meta property="og:url" content="https://schoolday.cc.cd/site/" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="欧阳 | WebGIS 开发工程师" />
+  <meta name="twitter:description" content="欧阳的个人主页 — WebGIS / 前端开发，专注二三维地图与工程落地。" />
+  <script>
+    // 在样式表生效前定好主题，避免浅色偏好用户看到深色首帧（key 与 main.js 的 THEME_KEY 一致）
+    (function () {
+      try {
+        var saved = localStorage.getItem('schoolday-theme');
+        var theme = saved === 'light' || saved === 'dark'
+          ? saved
+          : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+      // main.js 万一没跑起来（离线、被扩展拦截、部署时漏传），.reveal 会永久停在
+      // opacity:0 —— 整页空白。这里兜底把内容显出来；main.js 正常启动会置 sdReady。
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          if (!document.documentElement.dataset.sdReady) {
+            document.documentElement.classList.add('reveal-fallback');
+          }
+        }, 1200);
+      });
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- 字体 CSS 非阻塞加载：网络慢或字体域名不可达时，不让它拖住首屏渲染 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" /></noscript>
+  <link rel="stylesheet" href="./styles.css" />
+  <noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="scroll-progress" aria-hidden="true"><i id="scroll-bar"></i></div>
+
+  <div class="bg" aria-hidden="true">
+    <canvas id="fx-canvas"></canvas>
+    <div class="plx" data-plx="0.10"><div class="nebula nebula-a"></div></div>
+    <div class="plx" data-plx="0.16"><div class="nebula nebula-b"></div></div>
+    <div class="plx" data-plx="0.07"><div class="nebula nebula-c"></div></div>
+    <div class="grid-lines"></div>
+    <div class="scanline"></div>
+    <div class="noise"></div>
+  </div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="cursor-reticle" id="cursor-reticle" aria-hidden="true">
+    <svg class="reticle-svg" viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" aria-hidden="true">
+      <circle class="reticle-ring" cx="24" cy="24" r="15" pathLength="120" stroke-dasharray="34 86" stroke-width="1.4" stroke-linecap="round"/>
+      <path class="reticle-cross" d="M24 4v6M24 38v6M4 24h6M38 24h6" stroke-width="1.4" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="1.6" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="cursor-coords" id="cursor-coords"></span>
+  </div>
+  <header class="nav">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">SchoolDay</span>
+    </a>
+    <div class="nav-right">
+      <nav aria-label="主导航">
+        <span class="nav-pill" id="nav-pill" aria-hidden="true"></span>
+        <a href="#about"><span class="nav-idx">01</span>关于</a>
+        <a href="#skills"><span class="nav-idx">02</span>技能</a>
+        <a href="#experience"><span class="nav-idx">03</span>经历</a>
+        <a href="#projects"><span class="nav-idx">04</span>项目</a>
+        <a href="#contact"><span class="nav-idx">05</span>联系</a>
+      </nav>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换亮暗主题" title="切换主题">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy" data-plx="-0.055">
+        <p class="eyebrow reveal"><span class="pulse-dot"></span>WebGIS / Frontend Engineer</p>
+        <h1 class="hero-title">
+          <span class="line reveal" data-delay="60">
+            <span class="word">你好，</span>
+          </span>
+          <span class="line reveal" data-delay="120">
+            <span class="word">我是</span>
+            <span class="word gradient-text" data-glitch="欧阳">欧阳</span>
+          </span>
+        </h1>
+        <p class="lead type-target reveal" data-delay="220" data-text="WebGIS 开发工程师，专注 Vue 前端与二三维地图工程落地。擅长把复杂空间场景做成可用、好看、稳定的产品。"></p>
+        <div class="meta-row reveal" data-delay="300">
+          <span class="chip">WebGIS 开发</span>
+          <span class="chip">GIS 前端</span>
+          <span class="chip">2020 — 至今</span>
+          <span class="chip glow">Cesium / Leaflet</span>
+        </div>
+        <div class="actions reveal" data-delay="360">
+          <a class="btn primary magnetic" href="#projects">
+            <span class="btn-label">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <span>查看项目</span>
+            </span>
+            <i class="btn-shine"></i>
+          </a>
+          <a class="btn ghost magnetic" href="#experience">
+            <span class="btn-label">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              <span>工作经历</span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <aside class="hero-globe reveal" data-delay="120">
+        <div class="globe-stage" id="globe-stage">
+          <div class="radar-sweep" aria-hidden="true"></div>
+          <canvas id="globe-canvas" role="img" aria-label="交互式三维地球：可拖拽旋转，点击后可用滚轮缩放"></canvas>
+          <div class="globe-hud" aria-hidden="true">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path vector-effect="non-scaling-stroke" d="M1 12 V3 a2 2 0 0 1 2-2 h9"/>
+              <path vector-effect="non-scaling-stroke" d="M99 12 V3 a2 2 0 0 0-2-2 h-9"/>
+              <path vector-effect="non-scaling-stroke" d="M99 88 V97 a2 2 0 0 1-2 2 h-9"/>
+              <path vector-effect="non-scaling-stroke" d="M1 88 V97 a2 2 0 0 0 2 2 h9"/>
+            </svg>
+          </div>
+          <span class="hud-sat" id="hud-sat" aria-hidden="true">SAT 12 · Z 4.6</span>
+          <div class="globe-atmosphere" aria-hidden="true"></div>
+          <div class="globe-stats">
+            <div class="stat"><strong data-count="6">0</strong><span>年经验</span></div>
+            <div class="stat"><strong data-count="3">0</strong><span>核心项目</span></div>
+            <div class="stat"><strong data-count="10" data-suffix="+">0</strong><span>地图能力</span></div>
+          </div>
+          <div class="globe-caption">
+            <span class="globe-live"><i></i>Live Globe</span>
+            <span class="globe-hint">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+              拖拽旋转 · 点击后可滚轮缩放
+            </span>
+          </div>
+        </div>
+        <div class="floating-tags" data-plx="0.08" aria-hidden="true">
+          <span>Cesium</span><span>Leaflet</span><span>Vue3</span><span>PostGIS</span><span>GeoServer</span>
+        </div>
+      </aside>
+      <div class="scroll-cue reveal" data-delay="500" aria-hidden="true">
+        <span>SCROLL</span>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+      </div>
+    </section>
+
+    <div class="marquee" id="marquee" aria-hidden="true">
+      <div class="marquee-track" id="marquee-track">
+        <div class="marquee-chunk">
+          <span class="mq-o">WebGIS</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">Cesium</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-o">Leaflet</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">Vue 3</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-o">Mapbox GL</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">PostGIS</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-o">GeoServer</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">Three.js</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+        </div>
+        <div class="marquee-chunk">
+          <span class="mq-o">WebGIS</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">Cesium</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-o">Leaflet</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">Vue 3</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-o">Mapbox GL</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">PostGIS</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-o">GeoServer</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+          <span class="mq-s">Three.js</span>
+          <svg class="mq-sep" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M17.196 9 6.804 15"/><path d="m6.804 9 10.392 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <section class="section reveal" id="about">
+      <div class="section-head">
+        <span class="section-idx">01</span>
+        <div class="section-head-main">
+          <h2>
+            <svg class="section-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            关于
+          </h2>
+          <p class="section-sub">从地图引擎到业务落地，持续打磨可用的空间产品体验。</p>
+        </div>
+      </div>
+      <div class="about-grid">
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span><h3>简介</h3><p>6 年 WebGIS 前端开发经验，熟悉二三维 GIS 开发全流程，能独立承担地图模块设计、性能优化与项目交付。</p></article>
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg></span><h3>方向</h3><p>地籍、自然资源、水利、乡村规划等行业场景；擅长复杂交互、空间分析可视化与海量数据渲染。</p></article>
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1 2.5 3 6 3s6-2 6-3v-5"/></svg></span><h3>教育</h3><p>武汉信息传播学院<br />软件技术 / 计算机相关专业 · 专科<br />2016.09 — 2019.06</p></article>
+      </div>
+    </section>
+
+    <section class="section reveal" id="skills">
+      <div class="section-head">
+        <span class="section-idx">02</span>
+        <div class="section-head-main">
+          <h2>
+            <svg class="section-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 2 3 6 6 .9-4.5 4.4 1 6.2L12 17l-5.5 2.5 1-6.2L3 8.9 9 8Z"/></svg>
+            专业技能
+          </h2>
+          <p class="section-sub">前端工程 + 地图引擎 + 空间服务，形成完整交付链路。</p>
+        </div>
+      </div>
+      <div class="skill-grid">
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg></span><h3>前端技术</h3><ul><li>HTML5 / CSS3 / JavaScript ES6+</li><li>Vue2 / Vue3 全家桶</li><li>Vite / Webpack 工程化</li><li>Element Plus 等 UI 组件库</li></ul><div class="bars"><div class="bar"><span>Vue</span><i style="--v:92%"></i></div><div class="bar"><span>工程化</span><i style="--v:86%"></i></div></div></article>
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></span><h3>WebGIS 开发</h3><ul><li>Cesium / Leaflet / Mapbox GL JS</li><li>二三维地图展示与图层控制</li><li>空间查询、标绘、测量、缓冲与叠加</li><li>轨迹回放、热力图、点聚合</li><li>ArcGIS API for JavaScript</li></ul><div class="bars"><div class="bar"><span>Cesium</span><i style="--v:90%"></i></div><div class="bar"><span>Leaflet</span><i style="--v:93%"></i></div></div></article>
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg></span><h3>GIS 服务与数据</h3><ul><li>GeoServer 服务发布</li><li>PostGIS 空间数据库</li><li>WMS / WMTS / WFS</li><li>GeoJSON / Shapefile / 矢量切片</li><li>坐标转换、数据处理、瓦片优化</li></ul><div class="bars"><div class="bar"><span>GeoServer</span><i style="--v:84%"></i></div><div class="bar"><span>PostGIS</span><i style="--v:82%"></i></div></div></article>
+        <article class="card tilt"><div class="card-glow"></div><span class="card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M6 9v6M18 9a9 9 0 0 1-9 9"/></svg></span><h3>协作与工程</h3><ul><li>Git 版本管理</li><li>AI 辅助研发流程（Claude Code / Cursor）</li><li>接口文档与需求分析</li><li>代码规范与开发文档</li><li>问题排查与线上维护</li></ul><div class="bars"><div class="bar"><span>交付</span><i style="--v:88%"></i></div><div class="bar"><span>AI 协作</span><i style="--v:92%"></i></div></div></article>
+      </div>
+    </section>
+
+    <section class="section reveal" id="experience">
+      <div class="section-head">
+        <span class="section-idx">03</span>
+        <div class="section-head-main">
+          <h2>
+            <svg class="section-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            工作经历
+          </h2>
+          <p class="section-sub">从平台底座到行业项目，持续负责地图核心能力建设。</p>
+        </div>
+      </div>
+      <article class="timeline-item tilt"><div class="card-glow"></div>
+        <div class="timeline-head"><div><h3>WebGIS 研发工程师</h3><p class="muted">苍穹数码公司</p></div><p class="time">2020.03 — 至今</p></div>
+        <ul>
+          <li>负责 WebGIS 平台及行业项目前端开发，基于 Vue + Leaflet / Cesium 实现二三维一体化展示与交互。</li>
+          <li>参与地籍、自然资源、水利、乡村规划可视化等项目，负责地图核心模块、场景搭建与功能实现。</li>
+          <li>通过聚合、LOD、懒加载等方式优化海量点位与矢量渲染，提升前端流畅度。</li>
+          <li>对接 Kqgis、GeoServer、PostGIS 等服务，完成图层加载、空间检索、属性编辑与专题图展示。</li>
+          <li>参与需求评审、方案设计、文档编写与上线部署，持续维护线上项目稳定性。</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="section reveal" id="projects">
+      <div class="section-head">
+        <span class="section-idx">04</span>
+        <div class="section-head-main">
+          <h2>
+            <svg class="section-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+            项目经验
+          </h2>
+          <p class="section-sub">真实业务场景里的地图能力封装、性能优化与交互落地。</p>
+        </div>
+      </div>
+      <div class="work-list">
+        <article class="work-item tilt" data-preview="platform" data-title="国家空间基础平台" data-blurb="二三维一体化 SDK · 图层 / 标绘 / 空间分析通用能力底座" data-tags="Vue3,Leaflet,Cesium,Kqgis">
+          <div class="card-glow"></div>
+          <div class="work-badge">01</div>
+          <div class="work-body">
+            <h3>国家空间基础平台</h3>
+            <div class="stack">
+              <span>Vue3</span><span>Leaflet</span><span>Cesium</span><span>ElementUI</span><span>Kqgis</span>
+            </div>
+            <ul>
+              <li>负责空间基础 GIS 平台前端架构与核心地图模块，搭建可复用的二三维地图组件库。</li>
+              <li>深度封装图层控制、标绘编辑、空间查询、测量、裁剪叠加、轨迹回放与弹窗联动等通用能力。</li>
+              <li>实现点聚合、LOD、视野裁剪、异步加载与请求防抖，提升海量矢量数据渲染性能。</li>
+              <li>设计地图 SDK 与统一 API，支撑智慧城市、自然资源、水利等业务项目快速接入。</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="work-item tilt" data-preview="cadastral" data-title="地籍管理信息系统 · 一张图" data-blurb="宗地 / 界址 / 权属可视化 · 历史回溯与专用地图工具" data-tags="Vue3,Leaflet,Cesium,地籍">
+          <div class="card-glow"></div>
+          <div class="work-badge">02</div>
+          <div class="work-body">
+            <h3>地籍管理信息系统 · 一张图</h3>
+            <div class="stack">
+              <span>Vue3</span><span>Leaflet</span><span>Cesium</span><span>ElementUI</span><span>Kqgis</span>
+            </div>
+            <ul>
+              <li>实现宗地、权属、界址点、地籍区等空间数据展示与查询。</li>
+              <li>完成宗地定位、界址标注、专题图、历史回溯与变更痕迹可视化。</li>
+              <li>封装界址测量、宗地框选、批量筛选、截图导出与打印出图等专用地图工具。</li>
+              <li>优化海量宗地矢量加载与渲染，保障自然资源 / 不动产场景稳定使用。</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="work-item tilt" data-preview="rural" data-title="成都乡村规划项目" data-blurb="控制线叠加 · 产业 / 公服查询 · 万亩级数据流畅渲染" data-tags="Vue3,Leaflet,GeoServer,PostGIS">
+          <div class="card-glow"></div>
+          <div class="work-badge">03</div>
+          <div class="work-body">
+            <h3>成都乡村规划项目</h3>
+            <div class="stack">
+              <span>Vue3</span><span>Vite</span><span>Leaflet</span><span>Element Plus</span><span>GeoServer</span><span>PostGIS</span><span>ECharts</span>
+            </div>
+            <ul>
+              <li>搭建乡村规划地图底座，实现村级 / 镇级片区、振兴走廊、林盘、农田、宅基地等空间可视化。</li>
+              <li>支持生态保护红线、永久基本农田、村庄建设边界等控制线叠加、透明度调节与对比查看。</li>
+              <li>开发规划范围展示、产业用地、公服设施查询、方案对比、指标统计与成果导出能力。</li>
+              <li>通过矢量瓦片、LOD、视野裁剪与数据聚合，保障万亩级农田与大规模点位流畅展示。</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section contact reveal tilt" id="contact"><div class="card-glow"></div>
+      <span class="section-idx">05</span>
+      <div class="contact-inner">
+        <h2>
+          <svg class="section-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+          联系
+        </h2>
+        <p>欢迎就 WebGIS、地图可视化与前端工程进行交流。</p>
+        <p>本站不公开手机号与邮箱。如需联系，请前往我的主页（schoolday.cc.cd）。</p>
+        <a class="btn primary contact-btn magnetic" href="https://schoolday.cc.cd" target="_blank" rel="noopener noreferrer">
+          <span class="btn-label">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+            <span>前往我的主页</span>
+          </span>
+          <i class="btn-shine"></i>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <div class="project-preview" id="project-preview" hidden aria-hidden="true">
+    <div class="preview-visual" data-kind="platform">
+      <div class="mini-map">
+        <div class="mini-grid"></div>
+        <div class="mini-layer layer-a"></div>
+        <div class="mini-layer layer-b"></div>
+        <div class="mini-layer layer-c"></div>
+        <div class="mini-pin p1"></div>
+        <div class="mini-pin p2"></div>
+        <div class="mini-pin p3"></div>
+        <div class="mini-hud">
+          <span>2D / 3D</span>
+          <span>Layers 12</span>
+          <span>FPS 60</span>
+        </div>
+      </div>
+    </div>
+    <div class="preview-meta">
+      <p class="preview-kicker">Project Preview</p>
+      <h4 id="preview-title">项目</h4>
+      <p id="preview-blurb"></p>
+      <div class="preview-tags" id="preview-tags"></div>
+    </div>
+  </div>
+
+  <footer>
+    <span>© <span id="year"></span> 欧阳 · SchoolDay</span>
+    <span>Built for map-driven products</span>
+  </footer>
+
+  <div class="map-chrome" aria-hidden="true">
+    <div class="scale-bar" id="scale-bar">
+      <span class="scale-label" id="scale-label">500 km</span>
+      <span class="scale-track"><i></i><i></i><i></i><i></i></span>
+    </div>
+    <div class="compass" id="compass">
+      <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="24" cy="24" r="20" opacity=".45"/>
+        <path d="M24 6v4M24 38v4M6 24h4M38 24h4" opacity=".45"/>
+        <g class="compass-needle" id="compass-needle">
+          <path d="M24 12l4.5 12-4.5 4-4.5-4z" fill="currentColor" stroke="none"/>
+          <path d="M24 36l-2.2-6L24 26l2.2 4z" opacity=".4" fill="currentColor" stroke="none"/>
+        </g>
+        <text x="24" y="10.5" text-anchor="middle" font-size="7" fill="currentColor" stroke="none" font-family="monospace">N</text>
+      </svg>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

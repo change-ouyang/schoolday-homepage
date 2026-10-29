@@ -358,8 +358,8 @@
       body { height: auto; min-height: 100%; overflow: visible; }
       main {
         min-height: 0;
-        max-width: 1800px;
-        padding: clamp(1rem, 2vh, 2rem) 4%;
+        max-width: 1600px;
+        padding: clamp(1rem, 2vh, 2rem) 3%;
         overflow: visible;
         justify-content: center;
       }
@@ -370,6 +370,8 @@
         margin-bottom: 0;
       }
       .grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.5rem;
         row-gap: clamp(0.75rem, 2vh, 1.5rem);
       }
       .card {
@@ -386,10 +388,9 @@
       }
     }
     @media (min-width: 1600px) {
-      /* 宽屏仍可排到 6 列（下限 260px，1800px 内容宽度装得下 6 × ~280px），
-         但卡片少时不会硬留空列 */
+      /* 宽屏仍保持四列，左右留白由 main 的固定宽度控制 */
       .grid {
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 420px));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
     }
     @media (min-width: 1024px) and (max-height: 800px) {
@@ -476,12 +477,23 @@
     <div class="grid">
       <div class="card">
         <div class="card-icon">📄</div>
-        <h2><button class="card-action" type="button" data-href="https://schoolday-site.pages.dev" aria-label="个人作品集（在新标签页打开）">个人作品集</button></h2>
+        <h2><button class="card-action" type="button" data-href="./site/index.html" aria-label="个人作品集（在新标签页打开）">个人作品集</button></h2>
         <p>6 年 WebGIS 开发经历，专注 Cesium / Leaflet 二三维地图与工程落地</p>
         <div class="card-meta">
           <span class="chip">WebGIS</span>
           <span class="chip">Vue3</span>
           <span class="chip">Cesium</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h2><button class="card-action" type="button" data-href="https://stock.schoolday.cc.cd/" aria-label="股票分析系统（在新标签页打开）">股票分析系统</button></h2>
+        <p>全市场扫描、竞价监控、历史回测与实时自选信号分析</p>
+        <div class="card-meta">
+          <span class="chip">股票</span>
+          <span class="chip">数据分析</span>
+          <span class="chip">邮箱 OTP</span>
         </div>
       </div>
 
@@ -492,7 +504,7 @@
         <div class="card-meta">
           <span class="chip">Xray</span>
           <span class="chip">多协议</span>
-          <span class="chip">需登录</span>
+          <span class="chip">邮箱 OTP</span>
         </div>
       </div>
 
@@ -508,13 +520,24 @@
       </div>
 
       <div class="card">
+        <div class="card-icon">🚨</div>
+        <h2><button class="card-action" type="button" data-href="https://crowdsec.schoolday.cc.cd" aria-label="CrowdSec 入侵防护（在新标签页打开）">CrowdSec 入侵防护</button></h2>
+        <p>基于社区威胁情报的入侵检测与 IP 封禁：告警、决策与拦截记录</p>
+        <div class="card-meta">
+          <span class="chip">安全</span>
+          <span class="chip">IPS</span>
+          <span class="chip">邮箱 OTP</span>
+        </div>
+      </div>
+
+      <div class="card">
         <div class="card-icon">📊</div>
         <h2><button class="card-action" type="button" data-href="https://cpamp.schoolday.cc.cd" aria-label="CPAMP 管理面板（在新标签页打开）">CPAMP 管理面板</button></h2>
         <p>自托管的 CLIProxyAPI 管理面板：请求记录、用量与成本分析、配额与账号健康度</p>
         <div class="card-meta">
           <span class="chip">CLIProxyAPI</span>
           <span class="chip">成本分析</span>
-          <span class="chip">需登录</span>
+          <span class="chip">邮箱 OTP</span>
         </div>
       </div>
 
@@ -529,16 +552,18 @@
         </div>
       </div>
 
+
       <div class="card">
-        <div class="card-icon">🚨</div>
-        <h2><button class="card-action" type="button" data-href="https://crowdsec.schoolday.cc.cd" aria-label="CrowdSec 入侵防护（在新标签页打开）">CrowdSec 入侵防护</button></h2>
-        <p>基于社区威胁情报的入侵检测与 IP 封禁：告警、决策与拦截记录</p>
+        <div class="card-icon">🔮</div>
+        <h2><button class="card-action" type="button" data-href="https://magpie.schoolday.cc.cd" aria-label="Magpie 在线代理（在新标签页打开）">Magpie 在线代理</button></h2>
+        <p>Oracle 上的在线 Magpie：多模型聚合、Token 控制与用量管理</p>
         <div class="card-meta">
-          <span class="chip">安全</span>
-          <span class="chip">IPS</span>
-          <span class="chip">需登录</span>
+          <span class="chip">LLM</span>
+          <span class="chip">在线代理</span>
+          <span class="chip">邮箱 OTP</span>
         </div>
       </div>
+
     </div>
   </main>
 
